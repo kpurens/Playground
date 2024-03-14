@@ -51,7 +51,7 @@ public class PlaySiteServiceTest {
         CreatePlaySiteRequest request = CreatePlaySiteRequest.builder()
                 .attractionIds(attractionIds)
                 .build();
-        Attraction attraction = new Attraction(); // You should have an Attraction class defined similarly to your other classes
+        Attraction attraction = new Attraction();
         attraction.setId(attractionId);
         Set<Attraction> attractions = Stream.of(attraction).collect(Collectors.toSet());
         PlaySite playSite = PlaySite.builder()
@@ -61,7 +61,7 @@ public class PlaySiteServiceTest {
                 .id(UUID.randomUUID())
                 .attractions(attractions)
                 .build();
-        PlaySiteResponse expectedResponse = new PlaySiteResponse(); // Set up expected properties
+        PlaySiteResponse expectedResponse = new PlaySiteResponse();
 
         when(attractionService.findById(attractionId)).thenReturn(attraction);
         when(playSiteRepository.save(any(PlaySite.class))).thenReturn(savedPlaySite);
@@ -127,5 +127,21 @@ public class PlaySiteServiceTest {
 
         verify(playSiteRepository, times(1)).findById(id);
         verify(playSiteMapper, never()).toPlaySiteResponse(any(PlaySite.class));
+    }
+
+    @Test
+    public void testResetVisitorCount() {
+        PlaySite playSite1 = PlaySite.builder().id(UUID.randomUUID()).visitorCount(10).build();
+        PlaySite playSite2 = PlaySite.builder().id(UUID.randomUUID()).visitorCount(20).build();
+
+        when(playSiteRepository.findAll()).thenReturn(Arrays.asList(playSite1, playSite2));
+
+        playSiteService.resetVisitorCount();
+
+        verify(playSiteRepository, times(1)).save(playSite1);
+        verify(playSiteRepository, times(1)).save(playSite2);
+
+        assert(playSite1.getVisitorCount() == 0);
+        assert(playSite2.getVisitorCount() == 0);
     }
 }

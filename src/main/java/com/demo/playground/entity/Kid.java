@@ -2,7 +2,7 @@ package com.demo.playground.entity;
 
 import lombok.*;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -14,8 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Kid {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     private UUID id;
     private String name;
     private int age;

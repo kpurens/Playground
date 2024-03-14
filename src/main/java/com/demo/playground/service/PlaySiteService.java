@@ -112,6 +112,15 @@ public class PlaySiteService {
         return playSiteMapper.toPlaySiteResponse(playSite);
     }
 
+    @Transactional
+    public void resetVisitorCount() {
+        List<PlaySite> playSites = playSiteRepository.findAll();
+        playSites.forEach(playSite -> {
+            playSite.setVisitorCount(0);
+            playSiteRepository.save(playSite);
+        });
+    }
+
     private boolean hasReachedMaxKids(PlaySite playSite) {
         return playSite.getKids().size() >= playSiteProperties.getMaximumKids();
     }

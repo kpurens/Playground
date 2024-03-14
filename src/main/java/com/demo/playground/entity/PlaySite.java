@@ -5,8 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.beans.factory.annotation.Value;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.*;
 
@@ -17,14 +16,13 @@ import java.util.*;
 @AllArgsConstructor
 public class PlaySite {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     private UUID id;
+    private int visitorCount;
 
     @OneToMany(mappedBy = "playSite", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Attraction> attractions;
-
-    @OneToMany(mappedBy = "playSite", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "playSite", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Kid> kids;
 
     @Transient

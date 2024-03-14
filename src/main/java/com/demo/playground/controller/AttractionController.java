@@ -1,11 +1,8 @@
 package com.demo.playground.controller;
 
 import com.demo.playground.dto.request.CreateAttractionRequest;
-import com.demo.playground.dto.request.CreateKidRequest;
 import com.demo.playground.dto.response.AttractionResponse;
-import com.demo.playground.dto.response.KidResponse;
 import com.demo.playground.service.AttractionService;
-import com.demo.playground.service.KidService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

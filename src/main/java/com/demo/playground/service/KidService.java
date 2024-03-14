@@ -1,21 +1,16 @@
 package com.demo.playground.service;
 
 import com.demo.playground.dto.request.CreateKidRequest;
-import com.demo.playground.dto.request.CreatePlaySiteRequest;
 import com.demo.playground.dto.response.KidResponse;
-import com.demo.playground.dto.response.PlaySiteResponse;
-import com.demo.playground.entity.Attraction;
 import com.demo.playground.entity.Kid;
 import com.demo.playground.entity.PlaySite;
 import com.demo.playground.mapper.KidMapper;
-import com.demo.playground.repository.AttractionRepository;
 import com.demo.playground.repository.KidRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 

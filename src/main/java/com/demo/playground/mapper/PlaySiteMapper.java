@@ -24,7 +24,7 @@ public class PlaySiteMapper {
         PlaySiteResponse response = new PlaySiteResponse();
 
         response.setId(playSite.getId());
-        response.setVisitorCount(playSite.getKids() != null ? playSite.getKids().size() : 0);
+        response.setVisitorCount(playSite.getVisitorCount());
         response.setUtilization(calculateUtilization(playSite));
         response.setKidIds(convertKidsToIds(playSite.getKids()));
         response.setKidQueue(convertQueueToIds(playSite.getWaitingQueue()));

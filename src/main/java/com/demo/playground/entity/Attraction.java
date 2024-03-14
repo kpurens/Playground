@@ -3,14 +3,9 @@ package com.demo.playground.entity;
 import com.demo.playground.type.AttractionType;
 import lombok.*;
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.UuidGenerator;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -20,8 +15,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Attraction {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @UuidGenerator
     private UUID id;
     private double latitude;
     private double longitude;
