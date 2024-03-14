@@ -3,10 +3,13 @@ package com.demo.playground.service;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.demo.playground.config.PlaySiteProperties;
 import com.demo.playground.dto.request.CreatePlaySiteRequest;
 import com.demo.playground.dto.response.PlaySiteResponse;
 import com.demo.playground.entity.Attraction;
+import com.demo.playground.entity.Kid;
 import com.demo.playground.entity.PlaySite;
+import com.demo.playground.exception.PlaySiteAccessException;
 import com.demo.playground.mapper.PlaySiteMapper;
 import com.demo.playground.repository.PlaySiteRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -21,21 +24,14 @@ import java.util.stream.*;
 @SpringBootTest
 public class PlaySiteServiceTest {
 
-    @Mock
-    private PlaySiteRepository playSiteRepository;
-
-    @Mock
-    private KidService kidService;
-
-    @Mock
-    private AttractionService attractionService;
-
-    @Mock
-    private PlaySiteMapper playSiteMapper;
-
     @InjectMocks
     private PlaySiteService playSiteService;
-
+    @Mock
+    private PlaySiteRepository playSiteRepository;
+    @Mock
+    private AttractionService attractionService;
+    @Mock
+    private PlaySiteMapper playSiteMapper;
     @Captor
     private ArgumentCaptor<PlaySite> playSiteCaptor;
 

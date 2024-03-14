@@ -22,18 +22,21 @@ public class PlaySite {
 
     @OneToMany(mappedBy = "playSite", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Attraction> attractions;
+
     @OneToMany(mappedBy = "playSite", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Kid> kids;
 
-    @Transient
-    private final Queue<Kid> waitingQueue = new LinkedList<>();
-
-    public void enqueueKid(Kid kid) {
-        waitingQueue.add(kid);
+    public boolean isKidInPlaySite(Kid kid) {
+        return kids.contains(kid);
     }
 
-    public Kid dequeueKid() {
-        return waitingQueue.poll();
+    public void addKid(Kid kid) {
+        kids.add(kid);
+        visitorCount++;
+    }
+
+    public int getKidCount() {
+        return kids == null ? 0 : kids.size();
     }
 
     @Override

@@ -30,6 +30,9 @@ public class PlaySiteService {
     private KidService kidService;
 
     @Autowired
+    private QueueService queueService;
+
+    @Autowired
     private AttractionService attractionService;
 
     @Autowired
@@ -71,24 +74,38 @@ public class PlaySiteService {
         }
 
         if (hasReachedMaxKids(playSite)) {
-            if (!kid.isAcceptQueue()) {
+            if (queueService.isKidInAnyQueue(kid)) {
+                throw new PlaySiteAccessException("Kid is already in a queue");
+            } else if (kid.isAcceptQueue()) {
+                queueService.addKidToPlaySiteQueue(playSite.getId(), kid);
+                return playSiteMapper.toPlaySiteResponse(playSite);
+            } else {
                 throw new PlaySiteAccessException("Play site is full and kid does not accept queue");
             }
+        } else {
+            kidService.updatePlaySite(kid, playSite);
+            playSite.addKid(kid);
+            playSite = playSiteRepository.save(playSite);
+            return playSiteMapper.toPlaySiteResponse(playSite);
         }
-
-        kidService.updatePlaySite(kid, playSite);
-        playSite.getKids().add(kid);
-        playSite = playSiteRepository.save(playSite);
-        return playSiteMapper.toPlaySiteResponse(playSite);
     }
 
     @Transactional
     public PlaySiteResponse removeKidFromPlaySite(UUID id, UUID kidId) {
         PlaySite playSite = findById(id);
-        Kid kid = findKidById(playSite, kidId);
-        playSite.getAttractions().remove(kid);
-        kidService.updatePlaySite(kid, null);
-        playSite = playSiteRepository.save(playSite);
+        Kid kid = kidService.findById(kidId);
+
+        if (playSite.isKidInPlaySite(kid)) {
+            playSite.getKids().remove(kid);
+            kidService.updatePlaySite(kid, null);
+            acceptNextKidInQueue(playSite);
+        } else
+        if (queueService.isKidInPlaySiteQueue(playSite.getId(), kid)) {
+            queueService.removeKidFromPlaySiteQueue(playSite.getId(), kid);
+        } else {
+            throw new PlaySiteAccessException("Kid is not in this play site");
+        }
+
         return playSiteMapper.toPlaySiteResponse(playSite);
     }
 
@@ -121,6 +138,15 @@ public class PlaySiteService {
         });
     }
 
+    private void acceptNextKidInQueue(PlaySite playSite) {
+        Kid nextInQueue = queueService.pollPlaySiteQueue(playSite.getId());
+        if (nextInQueue != null) {
+            playSite.addKid(nextInQueue);
+            playSiteRepository.save(playSite);
+            kidService.updatePlaySite(nextInQueue, playSite);
+        }
+    }
+
     private boolean hasReachedMaxKids(PlaySite playSite) {
         return playSite.getKids().size() >= playSiteProperties.getMaximumKids();
     }
@@ -128,15 +154,6 @@ public class PlaySiteService {
     private PlaySite findById(UUID playSiteId) {
         return playSiteRepository.findById(playSiteId)
                 .orElseThrow(() -> new EntityNotFoundException("PlaySite not found with ID: " + playSiteId));
-    }
-
-    private Kid findKidById(PlaySite playSite, UUID kidId) {
-        for (Kid kid : playSite.getKids()) {
-            if (kid.getId().equals(kidId)) {
-                return kid;
-            }
-        }
-        throw new EntityNotFoundException("Kid not found with id: " + kidId);
     }
 
     private Attraction findAttractionById(PlaySite playSite, UUID attractionId) {

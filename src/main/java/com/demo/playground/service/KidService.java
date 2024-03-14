@@ -23,12 +23,15 @@ public class KidService {
     @Autowired
     private KidMapper kidMapper;
 
+    @Autowired
+    private TicketService ticketService;
+
     public KidResponse createKid(CreateKidRequest createKidRequest) {
         Kid kid = Kid.builder()
                 .age(createKidRequest.getAge())
                 .name(createKidRequest.getName())
                 .acceptQueue(createKidRequest.isAcceptQueue())
-                .ticket(-1)
+                .ticket(ticketService.getNextTicketNumber())
                 .build();
         kid = kidRepository.save(kid);
         return kidMapper.toKidResponse(kid);

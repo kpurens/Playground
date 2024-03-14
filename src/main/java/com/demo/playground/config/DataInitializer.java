@@ -50,9 +50,12 @@ public class DataInitializer implements CommandLineRunner {
         Kid kid1 = saveKid("John", 11, -1, true);
         Kid kid2 = saveKid("Jack", 12, -1, false);
         Kid kid3 = saveKid("Jill", 13, -1, true);
-        Kid kid4 = saveKid("James", 14, -1, false);
-        Kid kid5 = saveKid("Jasper", 15, -1, true);
-        Kid kid6 = saveKid("Jenkins", 16, -1, false);
+        Kid kid4 = saveKid("Jeep", 13, -1, true);
+        Kid kid5 = saveKid("James", 14, -1, false);
+        Kid kid6 = saveKid("Jasper", 15, -1, true);
+        Kid kid7 = saveKid("Jenkins", 16, -1, true);
+        Kid kid8 = saveKid("Jackson", 17, -1, false);
+        Kid kid9 = saveKid("Jakarta", 18, -1, true);
 
         PlaySite playSite1 = savePlaySite();
         PlaySite playSite2 = savePlaySite();
