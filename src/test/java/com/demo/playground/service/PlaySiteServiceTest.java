@@ -9,9 +9,9 @@ import com.demo.playground.dto.response.PlaySiteResponse;
 import com.demo.playground.entity.Attraction;
 import com.demo.playground.entity.Kid;
 import com.demo.playground.entity.PlaySite;
-import com.demo.playground.exception.PlaySiteAccessException;
 import com.demo.playground.mapper.PlaySiteMapper;
 import com.demo.playground.repository.PlaySiteRepository;
+import com.demo.playground.type.AttractionType;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,6 @@ import org.mockito.*;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.*;
-import java.util.stream.*;
 
 @SpringBootTest
 public class PlaySiteServiceTest {
@@ -27,11 +26,17 @@ public class PlaySiteServiceTest {
     @InjectMocks
     private PlaySiteService playSiteService;
     @Mock
+    private KidService kidService;
+    @Mock
+    private QueueService queueService;
+    @Mock
     private PlaySiteRepository playSiteRepository;
     @Mock
     private AttractionService attractionService;
     @Mock
     private PlaySiteMapper playSiteMapper;
+    @Mock
+    private PlaySiteProperties playSiteProperties;
     @Captor
     private ArgumentCaptor<PlaySite> playSiteCaptor;
 
@@ -43,16 +48,9 @@ public class PlaySiteServiceTest {
     @Test
     public void testCreatePlaySite() {
         UUID attractionId = UUID.randomUUID();
-        List<UUID> attractionIds = Collections.singletonList(attractionId);
-        CreatePlaySiteRequest request = CreatePlaySiteRequest.builder()
-                .attractionIds(attractionIds)
-                .build();
         Attraction attraction = new Attraction();
         attraction.setId(attractionId);
-        Set<Attraction> attractions = Stream.of(attraction).collect(Collectors.toSet());
-        PlaySite playSite = PlaySite.builder()
-                .attractions(attractions)
-                .build();
+        Set<Attraction> attractions = Collections.singleton(attraction);
         PlaySite savedPlaySite = PlaySite.builder()
                 .id(UUID.randomUUID())
                 .attractions(attractions)
@@ -62,6 +60,10 @@ public class PlaySiteServiceTest {
         when(attractionService.findById(attractionId)).thenReturn(attraction);
         when(playSiteRepository.save(any(PlaySite.class))).thenReturn(savedPlaySite);
         when(playSiteMapper.toPlaySiteResponse(any(PlaySite.class))).thenReturn(expectedResponse);
+
+        CreatePlaySiteRequest request = CreatePlaySiteRequest.builder()
+                .attractionIds(Collections.singletonList(attractionId))
+                .build();
 
         PlaySiteResponse response = playSiteService.createPlaySite(request);
 
@@ -74,6 +76,19 @@ public class PlaySiteServiceTest {
         assertNotNull(capturedPlaySite.getAttractions());
         assertFalse(capturedPlaySite.getAttractions().isEmpty());
         assertEquals(attractionId, capturedPlaySite.getAttractions().iterator().next().getId());
+    }
+
+    @Test
+    public void testCreatePlaySiteEntityNotFound() {
+        UUID attractionId = UUID.randomUUID();
+        when(attractionService.findById(attractionId)).thenThrow(new EntityNotFoundException("Attraction not found"));
+
+        CreatePlaySiteRequest request = CreatePlaySiteRequest.builder()
+                .attractionIds(Collections.singletonList(attractionId))
+                .build();
+
+        assertThrows(EntityNotFoundException.class, () -> playSiteService.createPlaySite(request),
+                "Expected createPlaySite to throw EntityNotFoundException but it didn't");
     }
 
     @Test
@@ -139,5 +154,160 @@ public class PlaySiteServiceTest {
 
         assert(playSite1.getVisitorCount() == 0);
         assert(playSite2.getVisitorCount() == 0);
+    }
+
+    @Test
+    public void testAddKidToPlaySite() {
+        UUID playSiteId = UUID.randomUUID();
+        UUID kidId = UUID.randomUUID();
+
+        Kid kid = Kid.builder()
+                .id(kidId)
+                .name("Josh")
+                .age(10)
+                .ticket(654321)
+                .acceptQueue(false)
+                .build();
+
+        PlaySite playSite = PlaySite.builder()
+                .id(playSiteId)
+                .visitorCount(0)
+                .attractions(new HashSet<>())
+                .kids(new HashSet<>())
+                .build();
+
+        when(playSiteProperties.getMaximumKids()).thenReturn(4);
+        when(playSiteRepository.findById(playSiteId)).thenReturn(Optional.of(playSite));
+        when(kidService.findById(kidId)).thenReturn(kid);
+        when(playSiteRepository.save(playSite)).thenReturn(playSite);
+        when(playSiteMapper.toPlaySiteResponse(playSite)).thenReturn(new PlaySiteResponse());
+
+        PlaySiteResponse response = playSiteService.addKidToPlaySite(playSiteId, kidId);
+
+        assertNotNull(response);
+        verify(kidService, times(1)).updatePlaySite(kid, playSite);
+        verify(playSiteRepository, times(1)).save(playSite);
+        assertTrue(playSite.getKids().contains(kid), "Kid should be added to the play site.");
+    }
+
+    @Test
+    public void testRemoveKidFromPlaySite() {
+        UUID playSiteId = UUID.randomUUID();
+        UUID kidId = UUID.randomUUID();
+
+        Kid kid = Kid.builder()
+                .id(kidId)
+                .name("John")
+                .age(10)
+                .ticket(123456)
+                .acceptQueue(true)
+                .playSite(new PlaySite())
+                .build();
+
+        PlaySite playSite = PlaySite.builder()
+                .id(playSiteId)
+                .visitorCount(1)
+                .attractions(new HashSet<>())
+                .kids(new HashSet<>(Collections.singletonList(kid)))
+                .build();
+
+        when(playSiteRepository.findById(playSiteId)).thenReturn(Optional.of(playSite));
+        when(kidService.findById(kidId)).thenReturn(kid);
+        when(playSiteMapper.toPlaySiteResponse(playSite)).thenReturn(new PlaySiteResponse());
+
+        assertTrue(playSite.getKids().contains(kid));
+
+        PlaySiteResponse response = playSiteService.removeKidFromPlaySite(playSiteId, kidId);
+
+        assertNotNull(response);
+        verify(kidService, times(1)).updatePlaySite(kid, null);
+        assertFalse(playSite.getKids().contains(kid), "Kid should be removed from the play site.");
+    }
+
+
+    @Test
+    public void testAddAttractionToPlaySite() {
+        UUID playSiteId = UUID.randomUUID();
+        UUID attractionId = UUID.randomUUID();
+
+        PlaySite playSite = PlaySite.builder()
+                .id(playSiteId)
+                .visitorCount(10)
+                .attractions(new HashSet<>())
+                .build();
+
+        Attraction attraction = Attraction.builder()
+                .id(attractionId)
+                .latitude(12.34)
+                .longitude(56.78)
+                .durability(10.0)
+                .type(AttractionType.BALL_PIT)
+                .build();
+
+        PlaySiteResponse expectedResponse = PlaySiteResponse.builder()
+                .id(playSiteId)
+                .visitorCount(10)
+                .utilization(0.5f)
+                .kidIds(new ArrayList<>())
+                .kidQueue(new ArrayList<>())
+                .attractionIds(Arrays.asList(attractionId))
+                .build();
+
+        when(playSiteRepository.findById(playSiteId)).thenReturn(Optional.of(playSite));
+        when(attractionService.findById(attractionId)).thenReturn(attraction);
+        when(playSiteRepository.save(any(PlaySite.class))).thenReturn(playSite);
+        when(playSiteMapper.toPlaySiteResponse(playSite)).thenReturn(expectedResponse);
+
+        PlaySiteResponse response = playSiteService.addAttractionToPlaySite(playSiteId, attractionId);
+
+        verify(playSiteRepository).save(playSite);
+        assertNotNull(response);
+        assertEquals(expectedResponse.getId(), response.getId());
+        assertEquals(expectedResponse.getVisitorCount(), response.getVisitorCount());
+        assertEquals(expectedResponse.getUtilization(), response.getUtilization());
+        assertEquals(expectedResponse.getAttractionIds(), response.getAttractionIds());
+    }
+
+    @Test
+    public void testRemoveAttractionFromPlaySite() {
+        UUID playSiteId = UUID.randomUUID();
+        UUID attractionId = UUID.randomUUID();
+
+        Attraction attraction = Attraction.builder()
+                .id(attractionId)
+                .latitude(12.34)
+                .longitude(56.78)
+                .durability(10.0)
+                .type(AttractionType.CAROUSEL)
+                .build();
+
+        Set<Attraction> attractions = new HashSet<>();
+        attractions.add(attraction);
+
+        PlaySite playSite = PlaySite.builder()
+                .id(playSiteId)
+                .visitorCount(10)
+                .attractions(attractions)
+                .build();
+
+        PlaySiteResponse expectedResponse = PlaySiteResponse.builder()
+                .id(playSiteId)
+                .visitorCount(10)
+                .utilization(0.5f)
+                .kidIds(new ArrayList<>())
+                .kidQueue(new ArrayList<>())
+                .attractionIds(new ArrayList<>())
+                .build();
+
+        when(playSiteRepository.findById(playSiteId)).thenReturn(Optional.of(playSite));
+        when(playSiteRepository.save(any(PlaySite.class))).thenReturn(playSite);
+        when(playSiteMapper.toPlaySiteResponse(playSite)).thenReturn(expectedResponse);
+
+        PlaySiteResponse response = playSiteService.removeAttractionFromPlaySite(playSiteId, attractionId);
+
+        assertNotNull(response);
+        verify(playSiteRepository).save(playSite);
+        assertFalse(response.getAttractionIds().contains(attractionId));
+        assertEquals(expectedResponse, response);
     }
 }

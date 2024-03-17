@@ -29,6 +29,9 @@ public class KidServiceTest {
     @Mock
     private KidMapper kidMapper;
 
+    @Mock
+    private TicketService ticketService;
+
     @InjectMocks
     private KidService kidService;
 
@@ -44,14 +47,6 @@ public class KidServiceTest {
                 .age(10)
                 .name("Test Kid")
                 .acceptQueue(true)
-                .build();
-
-        Kid kid = Kid.builder()
-                .id(null)
-                .age(10)
-                .name("Test Kid")
-                .acceptQueue(true)
-                .ticket(-1)
                 .build();
 
         Kid savedKid = Kid.builder()

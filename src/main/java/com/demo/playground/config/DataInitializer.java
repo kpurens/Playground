@@ -18,7 +18,6 @@ public class DataInitializer implements CommandLineRunner {
     private final AttractionRepository attractionRepository;
     private final KidRepository kidRepository;
     private final PlaySiteRepository playSiteRepository;
-
     private final PlaySiteService playSiteService;
 
     @Autowired

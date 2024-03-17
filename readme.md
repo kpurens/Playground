@@ -1,6 +1,6 @@
 <h1>Playground Management System</h1>
 <h2>Project Overview</h2>
-<p>This project is a Playground Management System designed to manage play sites, kids, and attractions in a playground setting. Built using Java with Spring Boot, it leverages an H2 in-memory database for efficient data persistence and management. The system provides a series of REST API endpoints to perform various operations related to playground management, offering a robust backend solution for playground administrators.</p>
+<p>This project is a Playground Management System designed to manage play sites, kids, and attractions in a playground setting. Built using Java with Spring Boot, it leverages an H2 in-memory database for efficient data persistence and control. The system provides a series of REST API endpoints to perform various operations related to playground management.</p>
 <h2>Technologies Used</h2>
 <ul>
    <li>Java: The primary programming language used to develop the application.</li>
@@ -8,10 +8,15 @@
    <li>H2 Database: An in-memory database used for data persistence, enabling quick access and modifications to the stored data.</li>
    <li>Gradle: A build automation tool used to manage dependencies and build the project.</li>
 </ul>
-<h2>Running the Project</h2>
+
+<h2>Running Project</h2>
 <p>To run the project, execute the following command in your terminal:</p>
 <b>./gradlew bootRun</b>
-</code></div></div></pre>
+<p>It should start the Spring Boot context using local Tomcat server.</p>
+<p>The base URI for accessing endpoints is http://localhost:8080</p>
+<p>Project will execute DataInitializer class upon launch - filling the local entities / tables of H2 database with valid test data.</p>
+<p>Afterwards simply call the desired endpoint to read / update specific data.</p>
+
 <h2>API Endpoints</h2>
 <h3>Play Sites</h3>
 <ul>

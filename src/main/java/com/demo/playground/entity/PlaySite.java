@@ -35,6 +35,18 @@ public class PlaySite {
         visitorCount++;
     }
 
+    public void removeKid(Kid kid) {
+        kids.remove(kid);
+    }
+
+    public void addAttraction(Attraction attraction) {
+        attractions.add(attraction);
+    }
+
+    public void removeAttraction(Attraction attraction) {
+        attractions.remove(attraction);
+    }
+
     public int getKidCount() {
         return kids == null ? 0 : kids.size();
     }

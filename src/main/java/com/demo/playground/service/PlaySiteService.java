@@ -96,7 +96,7 @@ public class PlaySiteService {
         Kid kid = kidService.findById(kidId);
 
         if (playSite.isKidInPlaySite(kid)) {
-            playSite.getKids().remove(kid);
+            playSite.removeKid(kid);
             kidService.updatePlaySite(kid, null);
             acceptNextKidInQueue(playSite);
         } else
@@ -114,7 +114,7 @@ public class PlaySiteService {
         PlaySite playSite = findById(id);
         Attraction attraction = attractionService.findById(attractionId);
         attractionService.updatePlaySite(attraction, playSite);
-        playSite.getAttractions().add(attraction);
+        playSite.addAttraction(attraction);
         playSite = playSiteRepository.save(playSite);
         return playSiteMapper.toPlaySiteResponse(playSite);
     }
@@ -123,7 +123,7 @@ public class PlaySiteService {
     public PlaySiteResponse removeAttractionFromPlaySite(UUID id, UUID attractionId) {
         PlaySite playSite = findById(id);
         Attraction attraction = findAttractionById(playSite, attractionId);
-        playSite.getAttractions().remove(attraction);
+        playSite.removeAttraction(attraction);
         attractionService.updatePlaySite(attraction, null);
         playSite = playSiteRepository.save(playSite);
         return playSiteMapper.toPlaySiteResponse(playSite);
